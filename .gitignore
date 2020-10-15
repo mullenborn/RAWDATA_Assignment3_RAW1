@@ -21,6 +21,10 @@
 **/.idea/**/contentModel.xml
 **/.idea/**/modules.xml
 
+#RiderC#
+.idea/
+*.*.iml
+
 *.suo
 *.user
 .vs/
