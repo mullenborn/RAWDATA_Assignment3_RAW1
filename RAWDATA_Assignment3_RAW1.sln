@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RAWDATA_Assignment3_RAW1", "RAWDATA_Assignment3_RAW1\RAWDATA_Assignment3_RAW1.csproj", "{6F1A0017-E2D2-426B-8009-0D6C1D3CF6FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{4BDF5848-8D93-4F0A-A27F-23B112A14AEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{AEEA7ADF-AB10-40CC-9801-AC353D4165A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{6F1A0017-E2D2-426B-8009-0D6C1D3CF6FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F1A0017-E2D2-426B-8009-0D6C1D3CF6FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F1A0017-E2D2-426B-8009-0D6C1D3CF6FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BDF5848-8D93-4F0A-A27F-23B112A14AEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BDF5848-8D93-4F0A-A27F-23B112A14AEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BDF5848-8D93-4F0A-A27F-23B112A14AEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BDF5848-8D93-4F0A-A27F-23B112A14AEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEEA7ADF-AB10-40CC-9801-AC353D4165A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEEA7ADF-AB10-40CC-9801-AC353D4165A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEEA7ADF-AB10-40CC-9801-AC353D4165A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEEA7ADF-AB10-40CC-9801-AC353D4165A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
