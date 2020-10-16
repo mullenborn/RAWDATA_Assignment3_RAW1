@@ -38,21 +38,7 @@ namespace Server
                 
                 var msg = Read(client, stream);
 
-                var request = FromJson<Request>(msg);
-                
-                var methods = new String[] { "create", "read", "update", "delete", "echo"};
-                
-                if (!methods.Contains(request.Method))
-                {
-                    var missingMethodResponse = new Response
-                    {
-                        Body = "",
-                        Status = "illegal method"
-                    };
-                    
-                    client.SendRequest(missingMethodResponse.ToJson());
-                } 
-                else if (msg == "{}")
+                if (msg == "{}")
                 {
 
                     var missingMethodResponse = new Response
@@ -71,6 +57,21 @@ namespace Server
 
                     stream.Write(data);
                 }
+                
+                /* var request = FromJson<Request>(msg);
+                
+                var methods = new String[] { "create", "read", "update", "delete", "echo"};
+                
+                if (!methods.Contains(request.Method))
+                {
+                    var missingMethodResponse = new Response
+                    {
+                        Body = "",
+                        Status = "illegal method"
+                    };
+                    
+                    client.SendRequest(missingMethodResponse.ToJson());
+                } */
             }
         }
 
