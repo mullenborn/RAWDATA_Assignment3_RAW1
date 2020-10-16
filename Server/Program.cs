@@ -2,10 +2,16 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace Server
 {
-    class ServerProgram
+    public class Response
+    {
+        public string Status { get; set; }
+        public string Body { get; set; }
+    }
+    static class ServerProgram
     {
         static void Main(string[] args)
         {
@@ -19,16 +25,28 @@ namespace Server
                 Console.WriteLine("Accepted client!");
 
                 var stream = client.GetStream();
-
-               
+                
                 var msg = Read(client, stream);
 
-                Console.WriteLine($"Message from client {msg}");
+                if (msg == "{}")
+                {
 
-                var data = Encoding.UTF8.GetBytes(msg.ToUpper());
+                    var missingMethodResponse = new Response
+                    {
+                        Body = "",
+                        Status = "missing method"
+                    };
+                    
+                    client.SendRequest(missingMethodResponse.ToJson());
+                }
+                else
+                {
+                    Console.WriteLine($"Message from client {msg}");
 
-                stream.Write(data);
+                    var data = Encoding.UTF8.GetBytes(msg.ToUpper());
 
+                    stream.Write(data);
+                }
             }
         }
 
@@ -40,6 +58,17 @@ namespace Server
 
             var msg = Encoding.UTF8.GetString(data, 0, cnt);
             return msg;
+        }
+        
+        public static string ToJson(this object data)
+        {
+            return JsonSerializer.Serialize(data, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        }
+        
+        public static void SendRequest(this TcpClient client, string request)
+        {
+            var msg = Encoding.UTF8.GetBytes(request);
+            client.GetStream().Write(msg, 0, msg.Length);
         }
     }
 }
