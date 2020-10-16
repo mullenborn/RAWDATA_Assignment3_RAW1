@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -9,6 +11,14 @@ namespace Server
     public class Response
     {
         public string Status { get; set; }
+        public string Body { get; set; }
+    }
+
+    public class Request
+    {
+        public string Method { get; set; }
+        public string Path { get; set; }
+        public string Date { get; set; }
         public string Body { get; set; }
     }
     static class ServerProgram
@@ -28,7 +38,21 @@ namespace Server
                 
                 var msg = Read(client, stream);
 
-                if (msg == "{}")
+                var request = FromJson<Request>(msg);
+                
+                var methods = new String[] { "create", "read", "update", "delete", "echo"};
+                
+                if (!methods.Contains(request.Method))
+                {
+                    var missingMethodResponse = new Response
+                    {
+                        Body = "",
+                        Status = "illegal method"
+                    };
+                    
+                    client.SendRequest(missingMethodResponse.ToJson());
+                } 
+                else if (msg == "{}")
                 {
 
                     var missingMethodResponse = new Response
@@ -63,6 +87,11 @@ namespace Server
         public static string ToJson(this object data)
         {
             return JsonSerializer.Serialize(data, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        }
+        
+        public static T FromJson<T>(this string element)
+        {
+            return JsonSerializer.Deserialize<T>(element, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         }
         
         public static void SendRequest(this TcpClient client, string request)
