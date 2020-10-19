@@ -94,8 +94,7 @@ namespace Server
                  Console.WriteLine(req.ToString());
 
                  CheckBadReqSystem(api, req, res, client);
-
-                // CheckReqSystem(api, req, res, client);
+                 
                 
           //     client.SendRequest(res.ToJson());
                 Console.WriteLine($"Message from client {msg}");
@@ -262,29 +261,6 @@ namespace Server
 
                     }
                    
-                } 
-                
-      
-                for (int i = 0; i < api.Paths.Count - 1; i++)
-                {
-
-                    /*
-                    if (req.Path.Equals(api.Paths[i]))
-                    {
-
-                        responseCode = statusCodes[0];
-                        if (req.Path == )
-                        {
-                           
-                            res.Body = api.Categories.ToJson();
-                        }
-                        else
-                        {
-                            res.Body = api.Categories[i].ToJson();
-
-                        }
-                    }
-*/
                 }
 
             }
@@ -313,90 +289,10 @@ namespace Server
             
 
         }
-       
-       
-       
-       
-       
-       
-       
-       
-       /*
 
-       public static void CheckReqSystem(Api api, Request req, Response res, TcpClient client)
-       {
-           
-           string[] responses = {"1 Ok", "2 Created", "3 Updated", "4 Bad Request", "5 Not Found", "6 Error"};
-           string response = "";
-           string body = "[";
 
-           // FOR CREATE 
 
-           if (req.Method == "create")
-           {
-               Console.WriteLine("CREATE!!");
-               
-           }
-
-           // FOR READING
-           
-           if (req.Method == "read")
-           {
-               Console.WriteLine("READ!!");
-               int cnt = 0;
-               foreach (var p in api.Paths)
-               {
-                   if (req.Path.Contains(p.ToString()))
-                   {
-
-                       if (cnt >= 1)
-                       {
-                           response = responses[0];
-                           body = api.Categories[cnt].ToJson();
-
-                       }else if (cnt == 0)
-                       {
-                           response = responses[0];
-                           int countTwo = 0;
-                           foreach (var c in api.Categories)
-                           {
-                              
-                               
-                                   body += c.ToJson();
-                                   if (countTwo < 2)
-                                   {
-                                       body += ",";
-                                   }
-                                   countTwo++;
-                           }
-                       }
-                   }
-                   cnt++;
-               }
-           } 
-
-           if (req.Method == "update")
-           {
-               Console.WriteLine("UPDATE!!");
-           }
-
-           if (req.Method == "delete")
-           {
-               Console.WriteLine("DELETE!!!");
-           }
-
-           
-           res.Body = body + "]";
-           res.Status = response;
-      
-           
-       }
-
-     */
-       
-       
-
-        public static bool IsValidJSON(string input)
+       public static bool IsValidJSON(string input)
         {
             
             if (input.StartsWith("{") && input.EndsWith("}") || input.StartsWith("[") && input.EndsWith("]"))
