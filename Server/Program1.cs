@@ -46,68 +46,71 @@ namespace Server
 
   static class ServerProgram
     {
-     
-        
+
+
         static void Main(string[] args)
         {
-    
-            
+
+
             var server = new TcpListener(IPAddress.Loopback, 5000);
             server.Start();
             Console.WriteLine("Server started!");
             var api = new Api();
-            
-          ArrayList tempPaths = new ArrayList();
-          tempPaths.Add("/api/categories");
-          tempPaths.Add("/api/categories/1");
-          tempPaths.Add("/api/categories/2");
-          tempPaths.Add("/api/categories/3");
-      
-          ArrayList tempCategories = new ArrayList();
-          tempCategories.Add(new Category {Cid = 1, Name = "Beverages"});
-          tempCategories.Add(new Category {Cid = 2, Name = "Condiments"});
-          tempCategories.Add(new Category {Cid = 3, Name = "Confections"});
-          
+
+            ArrayList tempPaths = new ArrayList();
+            tempPaths.Add("/api/categories");
+            tempPaths.Add("/api/categories/1");
+            tempPaths.Add("/api/categories/2");
+            tempPaths.Add("/api/categories/3");
+
+            ArrayList tempCategories = new ArrayList();
+            tempCategories.Add(new Category {Cid = 1, Name = "Beverages"});
+            tempCategories.Add(new Category {Cid = 2, Name = "Condiments"});
+            tempCategories.Add(new Category {Cid = 3, Name = "Confections"});
+
             api.Categories = tempCategories;
             api.Paths = tempPaths;
 
             while (true)
             {
-       
-           
+
+
                 var client = server.AcceptTcpClient();
                 Console.WriteLine("Accepted client!");
 
                 var stream = client.GetStream();
 
                 var msg = Read(client, stream);
-                
-                var res = new Response
+
+                if (!String.IsNullOrEmpty(msg))
                 {
-                    Body = "",
-                    Status = ""
+                    var res = new Response
+                    {
+                        Body = "",
+                        Status = ""
 
-                };
+                    };
 
-                 Request req =  msg.FromJson<Request>();
-                 
-                 Console.WriteLine(req.ToString());
+                    Request req = msg.FromJson<Request>();
 
-                 CheckBadReqSystem(api, req, res, client);
-                 
-                
-          //     client.SendRequest(res.ToJson());
-                Console.WriteLine($"Message from client {msg}");
-           
-                var data = Encoding.UTF8.GetBytes(msg.ToUpper());
-           
-                stream.Write(data);
+                    Console.WriteLine(req.ToString());
+
+                    CheckBadReqSystem(api, req, res, client);
+
+
+                    //     client.SendRequest(res.ToJson());
+                    Console.WriteLine($"Message from client {msg}");
+
+                    var data = Encoding.UTF8.GetBytes(msg.ToUpper());
+
+                    stream.Write(data);
+                }
             }
         }
 
- 
 
-       public static void CheckBadReqSystem(Api api, Request req, Response res, TcpClient client)
+
+        public static void CheckBadReqSystem(Api api, Request req, Response res, TcpClient client)
         {
             string[] reasonResults = {"missing", "illegal"};
             string[] reqElements = {"method","path", "date", "body", "resource"};
@@ -131,7 +134,7 @@ namespace Server
             string responseResultResource = "";
             string finalResultBadReq = "";
             string finalResultReq = "";
-            
+
             // Checking for missing elements
             if (req.Method == null)
             {
@@ -301,11 +304,8 @@ namespace Server
             }
             return false;
         }
-        
 
-
-
-        private static string Read(TcpClient client, NetworkStream stream)
+       private static string Read(TcpClient client, NetworkStream stream)
         {
             byte[] data = new byte[client.ReceiveBufferSize];
 
