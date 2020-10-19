@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -16,9 +17,13 @@ namespace Server
 
     public class Request
     {
+        //[Required]
         public string Method { get; set; }
+        //[Required]
         public string Path { get; set; }
+        //[Required]
         public string Date { get; set; }
+        
         public string Body { get; set; }
     }
     static class ServerProgram
@@ -37,41 +42,58 @@ namespace Server
                 var stream = client.GetStream();
                 
                 var msg = Read(client, stream);
-
-                if (msg == "{}")
+                
+                if (!string.IsNullOrEmpty(msg))
                 {
-
-                    var missingMethodResponse = new Response
+                    // Check for missing method error
+                    if (msg == "{}")
                     {
-                        Body = "",
-                        Status = "missing method"
-                    };
+                        var response = new Response
+                        {
+                            Body = "",
+                            Status = "missing method"
+                        };
                     
-                    client.SendRequest(missingMethodResponse.ToJson());
-                }
-                else
-                {
+                        client.SendRequest(response.ToJson());
+                        Console.WriteLine($"missing method");
+                    }
+                    
+                    // Print message from client
                     Console.WriteLine($"Message from client {msg}");
-
-                    var data = Encoding.UTF8.GetBytes(msg.ToUpper());
-
-                    stream.Write(data);
-                }
-                
-                /* var request = FromJson<Request>(msg);
-                
-                var methods = new String[] { "create", "read", "update", "delete", "echo"};
-                
-                if (!methods.Contains(request.Method))
-                {
-                    var missingMethodResponse = new Response
-                    {
-                        Body = "",
-                        Status = "illegal method"
-                    };
                     
-                    client.SendRequest(missingMethodResponse.ToJson());
-                } */
+                    var requestFromClient = FromJson<Request>(msg);
+                    var methods = new String[] { "create", "read", "update", "delete", "echo"};
+                
+                    // Check for illegal method
+                    if (!methods.Contains(requestFromClient.Method))
+                    {
+                        var response = new Response
+                        {
+                            Body = "",
+                            Status = "illegal method"
+                        };
+                        
+                        client.SendRequest(response.ToJson());
+                        Console.WriteLine("illegal method");
+                    }
+                    // test missing resource error - validates object
+                    // var context = new ValidationContext(requestFromClient);
+                    // var results = new List<ValidationResult>();
+                    // var valid = Validator.TryValidateObject(requestFromClient, context, results);
+                    // if (!valid)
+                    // {
+                    //     var response = new Response
+                    //     {
+                    //         Body = "",
+                    //         Status = "missing resource"
+                    //     };
+                    //     
+                    //     client.SendRequest(response.ToJson());
+                    //     Console.WriteLine("missing resource");;
+                    // }
+                }
+                // var data = Encoding.UTF8.GetBytes(msg.ToUpper());
+                // stream.Write(data);
             }
         }
 
