@@ -200,10 +200,12 @@ namespace Server
 
                 if (pathCnt == 0)
                 {
+                    responseCode = statusCodes[4];
                     responseResultPath = reasonResults[1] + " " + reqElements[1];
                 }
                 else
                 {
+                    
                     hasLegalPath = true;
                 }
             }
@@ -241,14 +243,49 @@ namespace Server
             if (hasLegalMethod && hasLegalPath && hasLegalDate)
             {
 
+                responseCode = statusCodes[4];
+                
                 if (req.Path.Equals(api.Paths[0]))
                 {
-
-                    responseCode = statusCodes[0];
-
                     res.Body = api.Categories.ToJson();
-                } 
+                    responseCode = statusCodes[0];
+                }
+                else
+                {
+                    for (int i = 1; i < api.Categories.Count - 1; i++)
+                    {
+                        if (req.Path.Equals(api.Paths[i]))
+                        {
+                            responseCode = statusCodes[0];
+                            res.Body = api.Categories[i - 1].ToJson();
+                        }
 
+                    }
+                   
+                } 
+                
+      
+                for (int i = 0; i < api.Paths.Count - 1; i++)
+                {
+
+                    /*
+                    if (req.Path.Equals(api.Paths[i]))
+                    {
+
+                        responseCode = statusCodes[0];
+                        if (req.Path == )
+                        {
+                           
+                            res.Body = api.Categories.ToJson();
+                        }
+                        else
+                        {
+                            res.Body = api.Categories[i].ToJson();
+
+                        }
+                    }
+*/
+                }
 
             }
 
