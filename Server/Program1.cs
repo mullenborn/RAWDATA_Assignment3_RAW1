@@ -93,7 +93,7 @@ namespace Server
                  
                  Console.WriteLine(req.ToString());
 
-                 CheckBadReqSystem(req, res, client);
+                 CheckBadReqSystem(api, req, res, client);
 
                 // CheckReqSystem(api, req, res, client);
                 
@@ -107,6 +107,184 @@ namespace Server
         }
 
  
+
+       public static void CheckBadReqSystem(Api api, Request req, Response res, TcpClient client)
+        {
+            string[] reasonResults = {"missing", "illegal"};
+            string[] reqElements = {"method","path", "date", "body", "resource"};
+            string[] methods = { "echo", "create", "read", "update", "delete"};
+            string[] statusCodes = {"1 Ok", "2 Created", "3 Updated", "4 Bad Request", "5 Not Found", "6 Error"};
+            string[] paths = { "api\\categories\\1", "\\api\\categories\\2", "\\api\\categories\\3", "testing" };
+            bool hasMethod = true;
+            bool hasPath = true;
+            bool hasDate = true;
+            bool hasBody = true;
+            bool hasLegalMethod = false;
+            bool hasLegalPath = false;
+            bool hasLegalDate = false;
+            bool hasLegalBody = false;
+            
+            string responseCode = "4";
+            string responseResultMethod = "";
+            string responseResultPath = "";
+            string responseResultDate = "";
+            string responseResultBody = "";
+            string responseResultResource = "";
+            string finalResultBadReq = "";
+            string finalResultReq = "";
+            
+            // Checking for missing elements
+            if (req.Method == null)
+            {
+                hasMethod = false;
+                responseResultMethod = reasonResults[0] + " " + reqElements[0];
+            }
+
+            if (req.Path == null)
+            {
+                hasPath = false;
+                responseResultPath = reasonResults[0] + " " + reqElements[1];
+            }
+            
+            if (req.Date == null)
+            {
+                hasDate = false;
+                responseResultDate = reasonResults[0] + " " + reqElements[2];
+            }
+            if (req.Body == null)
+            {
+                hasBody = false;
+                responseResultBody = reasonResults[0] + " " + reqElements[3];
+            }
+            
+            // missing resource
+            if (hasMethod && hasDate && !hasBody && !hasPath)
+            {
+                responseResultResource = reasonResults[0] + " " + reqElements[4];
+            }
+            
+            
+            
+            // checking Illegal
+            if (hasMethod)
+            {
+                int methodCnt = 0;
+                for (int i = 0; i < methods.Length - 1; i++)
+                {
+                    if (methods[i].Equals(req.Method))
+                    {
+                        methodCnt++;
+                    }
+                }
+                if (methodCnt == 0)
+                {
+                    responseResultMethod = reasonResults[1] + " " + reqElements[0];
+                }
+                else
+                {
+                    hasLegalMethod = true;
+                }
+
+            }
+
+            if (hasPath)
+            {
+                int pathCnt = 0;
+                for (int i = 0; i < api.Paths.Count - 1; i++)
+                {
+                    if (req.Path == api.Paths[i].ToString())
+                    {
+                        pathCnt++;
+                    }
+                }
+
+                if (pathCnt == 0)
+                {
+                    responseResultPath = reasonResults[1] + " " + reqElements[1];
+                }
+                else
+                {
+                    hasLegalPath = true;
+                }
+            }
+
+            if (hasDate)
+            {
+                if (req.Date.Length != 10)
+                {
+                    responseResultDate = reasonResults[1] + " " + reqElements[2];
+                }
+                else
+                {
+                    hasLegalDate = true;
+                }
+            }
+            
+            if (hasBody)
+            {
+                if (req.Body != null && req.Method != "echo")
+                {
+               
+                    hasLegalBody = true;
+                    //    responseResultBody = reasonResults[1] + " " + reqElements[3];
+                } else if (req.Method == "echo" && !IsValidJSON(req.Body))
+                {
+                    
+                    string responseResultEcho = req.Body;
+                    res.Body = responseResultEcho;
+
+                }
+            
+            }
+            
+            // READ
+            if (hasLegalMethod && hasLegalPath && hasLegalDate)
+            {
+
+                if (req.Path.Equals(api.Paths[0]))
+                {
+
+                    responseCode = statusCodes[0];
+
+                    res.Body = api.Categories.ToJson();
+                } 
+
+
+            }
+
+
+
+
+
+            if (hasLegalPath && hasLegalMethod && hasLegalDate)
+            {
+                
+                finalResultReq = responseCode;
+                res.Status = finalResultReq;
+               // client.SendRequest(res.ToJson());
+            }
+            else
+            {
+                finalResultBadReq = responseCode + " " + responseResultMethod + " " + responseResultPath + " " + responseResultDate + " " + responseResultBody + " " + responseResultResource;
+               
+                res.Status = finalResultBadReq;
+                Console.WriteLine(res.ToString());
+               
+            }
+
+            client.SendRequest(res.ToJson());
+            
+
+        }
+       
+       
+       
+       
+       
+       
+       
+       
+       /*
 
        public static void CheckReqSystem(Api api, Request req, Response res, TcpClient client)
        {
@@ -177,123 +355,9 @@ namespace Server
            
        }
 
-     
-
-       public static void CheckBadReqSystem(Request req, Response res, TcpClient client)
-        {
-            string[] reasonResults = {"missing", "illegal"};
-            string[] elements = {"method","path", "date", "body", "resource"};
-            string[] methods = { "echo", "create", "read", "update", "delete"};
-            string[] paths = { "api\\categories\\1", "\\api\\categories\\2", "\\api\\categories\\3", "testing" };
-            bool hasMethod = true;
-            bool hasPath = true;
-            bool hasDate = true;
-            bool hasBody = true;
-            string responseCode = "4";
-            string responseResultMethod = "";
-            string responseResultPath = "";
-            string responseResultDate = "";
-            string responseResultBody = "";
-            string responseResultResource = "";
-            string finalResult = "";
-          
-            
-            // Checking for missing elements
-            if (req.Method == null)
-            {
-                hasMethod = false;
-                responseResultMethod = reasonResults[0] + " " + elements[0];
-            }
-
-            if (req.Path == null)
-            {
-                hasPath = false;
-                responseResultPath = reasonResults[0] + " " + elements[1];
-            }
-            
-            if (req.Date == null)
-            {
-                hasDate = false;
-                responseResultDate = reasonResults[0] + " " + elements[2];
-            }
-            if (req.Body == null)
-            {
-                hasBody = false;
-                responseResultBody = reasonResults[0] + " " + elements[3];
-            }
-            
-            // missing resource
-            if (hasMethod && hasDate && !hasBody && !hasPath)
-            {
-                responseResultResource = reasonResults[0] + " " + elements[4];
-            }
-            
-            
-            
-            // checking Illegal
-            if (hasMethod)
-            {
-                int methodCnt = 0;
-                for (int i = 0; i < methods.Length - 1; i++)
-                {
-                    if (methods[i].Equals(req.Method))
-                    {
-                        methodCnt++;
-                    }
-                }
-
-                if (methodCnt == 0)
-                {
-                    responseResultMethod = reasonResults[1] + " " + elements[0];
-                }
-
-            }
-
-            if (hasPath)
-            {
-                int pathCnt = 0;
-                for (int i = 0; i < paths.Length - 1; i++)
-                {
-                    if (req.Path == paths[i])
-                    {
-                        pathCnt++;
-                    }
-                }
-
-                if (pathCnt == 0)
-                {
-                    responseResultPath = reasonResults[1] + " " + elements[1];
-                }
-            }
-
-            if (hasDate)
-            {
-                if (req.Date.Length != 10)
-                {
-                    responseResultDate = reasonResults[1] + " " + elements[2];
-                }
-            }
-            
-            if (hasBody)
-            {
-                if (req.Body != null && req.Method != "echo")
-                {
-                    responseResultBody = reasonResults[1] + " " + elements[3];
-                } else if (req.Method == "echo" && !IsValidJSON(req.Body))
-                {
-                    string responseResultEcho = req.Body;
-                    res.Body = responseResultEcho;
-
-                }
-            }
-            
-            
-                finalResult = responseCode + " " + responseResultMethod + " " + responseResultPath + " " + responseResultDate + " " + responseResultBody + " " + responseResultResource;
-                res.Status = finalResult;
-                Console.WriteLine(res.ToString());
-                client.SendRequest(res.ToJson());
-
-        }
+     */
+       
+       
 
         public static bool IsValidJSON(string input)
         {
