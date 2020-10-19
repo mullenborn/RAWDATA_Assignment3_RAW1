@@ -14,7 +14,7 @@ namespace Client
 
             var stream = client.GetStream();
 
-            var data = Encoding.UTF8.GetBytes("Hello");
+            var data = Encoding.UTF8.GetBytes("method");
 
             stream.Write(data);
 
