@@ -84,7 +84,7 @@ namespace Server
                 
                 var res = new Response
                 {
-                    Body = "",
+                    Body = null,
                     Status = ""
 
                 };
@@ -113,7 +113,7 @@ namespace Server
             string[] reqElements = {"method","path", "date", "body", "resource"};
             string[] methods = { "echo", "create", "read", "update", "delete"};
             string[] statusCodes = {"1 Ok", "2 Created", "3 Updated", "4 Bad Request", "5 Not Found", "6 Error"};
-            string[] paths = { "api\\categories\\1", "\\api\\categories\\2", "\\api\\categories\\3", "testing" };
+       //     string[] paths = { "api\\categories\\1", "\\api\\categories\\2", "\\api\\categories\\3", "testing" };
             bool hasMethod = true;
             bool hasPath = true;
             bool hasDate = true;
@@ -165,12 +165,14 @@ namespace Server
             
             
             // checking Illegal
+            // METHOD
             if (hasMethod)
             {
                 int methodCnt = 0;
-                for (int i = 0; i < methods.Length - 1; i++)
+                for (int i = 0; i < methods.Length; i++)
                 {
-                    if (methods[i].Equals(req.Method))
+                    //if (methods[i].Equals(req.Method))
+                    if(req.Method.Equals(methods[i]))
                     {
                         methodCnt++;
                     }
@@ -185,7 +187,7 @@ namespace Server
                 }
 
             }
-
+// ILLEGAL PATH
             if (hasPath)
             {
                 int pathCnt = 0;
@@ -194,21 +196,22 @@ namespace Server
                     if (req.Path == api.Paths[i].ToString())
                     {
                         pathCnt++;
-                    }
+                        hasLegalPath = true;
+                    } 
                 }
 
                 if (pathCnt == 0)
                 {
-                    responseCode = statusCodes[4];
+                    responseCode = statusCodes[3];
                     responseResultPath = reasonResults[1] + " " + reqElements[1];
                 }
-                else
+                else if(pathCnt > 0)
                 {
                     
                     hasLegalPath = true;
                 }
             }
-
+// ILLEGAL DATE 
             if (hasDate)
             {
                 if (req.Date.Length != 10)
@@ -220,72 +223,206 @@ namespace Server
                     hasLegalDate = true;
                 }
             }
-            
+            // ILLEGAL BODY / ECHO
             if (hasBody)
             {
-                if (req.Body != null && req.Method != "echo")
+
+                if (IsValidJSON(req.Body))
                 {
-               
                     hasLegalBody = true;
-                    //    responseResultBody = reasonResults[1] + " " + reqElements[3];
-                } else if (req.Method == "echo" && !IsValidJSON(req.Body))
-                {
                     
-                    string responseResultEcho = req.Body;
-                    res.Body = responseResultEcho;
 
                 }
-            
+                else
+                {
+                    responseResultBody = reasonResults[1] + " " + reqElements[3];
+                    string responseResultEcho = req.Body;
+                    res.Body = responseResultEcho;
+                    res.Status = responseResultBody;
+                    Console.WriteLine(res.ToString());
+                    client.SendRequest(res.ToJson());
+                    
+                    
+                }
             }
             
             // READ
-            if (hasLegalMethod && hasLegalPath && hasLegalDate)
+            if (hasLegalPath && hasLegalDate && req.Method.Equals(methods[2]))
             {
 
+                
+                
                 responseCode = statusCodes[4];
                 
                 if (req.Path.Equals(api.Paths[0]))
                 {
                     res.Body = api.Categories.ToJson();
                     responseCode = statusCodes[0];
-                }
+                } 
                 else
                 {
                     for (int i = 1; i < api.Categories.Count - 1; i++)
                     {
                         if (req.Path.Equals(api.Paths[i]))
                         {
+                            
                             responseCode = statusCodes[0];
-                            res.Body = api.Categories[i - 1].ToJson();
-                        }
+                            
+                            // CHECK THIS? 
+                             res.Body = api.Categories[i - 1].ToJson();
+                           //  string[] parts = res.Body.Split('"');
+                           //  res.Body = parts[parts.Length - 2].ToJson();
+                            
 
+                        }
+                        
                     }
                    
                 }
-
-            }
-
-
-
-
-
-            if (hasLegalPath && hasLegalMethod && hasLegalDate)
-            {
-                
-                finalResultReq = responseCode;
-                res.Status = finalResultReq;
-               // client.SendRequest(res.ToJson());
             }
             else
             {
-                finalResultBadReq = responseCode + " " + responseResultMethod + " " + responseResultPath + " " + responseResultDate + " " + responseResultBody + " " + responseResultResource;
-               
-                res.Status = finalResultBadReq;
-                Console.WriteLine(res.ToString());
-               
+                responseCode = statusCodes[4];
             }
 
-            client.SendRequest(res.ToJson());
+            // CREATE 
+            if (hasLegalPath && hasLegalMethod &&  req.Method.Equals(methods[1]))
+            {
+                
+                if (req.Path.Equals(api.Paths[0]) && hasLegalBody)
+                {
+
+                    responseCode = statusCodes[0];
+                    Category newC = new Category
+                    {
+                        Cid = api.Categories.Count + 1,
+                        Name = req.Body
+                    };
+
+
+
+                    string newPath = api.Paths[0] + "/" + api.Paths.Count.ToString();
+                    // Add new path to api
+                    api.Paths.Add(newPath);
+                    res.Body = newC.ToJson();
+                    // Add new Category to api
+                    api.Categories.Add(newC);
+                    
+
+                }
+                else
+                {
+                    
+                    responseCode = statusCodes[3];
+                    finalResultReq = responseCode;
+                    res.Body = null;
+                    res.Status = finalResultReq;
+                    client.SendRequest(res.ToJson());
+
+                }
+                
+            }
+            
+            // UPDATE 
+
+
+            if (req.Method.Equals(methods[3]))
+            {
+                if (hasLegalPath && hasLegalBody)
+                {
+                    if (req.Path.Equals(api.Paths[0]))
+                    {
+                        // STATUS CODE = 4 Bad Request
+                        responseCode = statusCodes[3];
+                        res.Body = null;
+                    }
+                    else
+                    {
+                        for (int i = 1; i < api.Paths.Count - 1; i++) {
+                            
+                            // UPDATE VALUE 
+                                
+                            Category newTemp = new Category
+                            {
+                                Cid = i,
+                                Name = req.Body
+                            };
+// FIX THIS PART 
+                            api.Categories[i - 1] = newTemp;
+                            responseCode = statusCodes[2];
+                            res.Body = newTemp.ToJson();
+                     
+                            
+                        }
+
+
+                    }
+
+
+                }
+
+
+            }
+
+            // DELETE
+
+            if (req.Method.Equals(methods[4]))
+            {
+                if (hasPath)
+                {
+                    
+                    if (req.Path.Equals(api.Paths[0]))
+                    {
+                        /*
+                        for (int i = 1; i < api.Categories.Count; i++)
+                        {
+                          //  api.Categories[i] = null;
+                        }
+                        */
+                        responseCode = statusCodes[3];
+                        res.Body = null;
+                    }
+                    else
+                    {
+                        for (int i = 1; i < api.Paths.Count; i++)
+                        {
+                            if (req.Path.Equals(api.Paths[i]))
+                            {
+                                api.Categories[i - 1] = null;
+                                responseCode = statusCodes[0];
+                            }
+                        }
+                        
+                        
+                    }
+                }
+                else
+                {
+                    responseCode = statusCodes[4];
+                }
+
+
+            }
+
+
+
+            if (hasLegalMethod)
+            {
+                
+                finalResultReq = responseCode;
+                res.Status = finalResultReq.Trim();
+                client.SendRequest(res.ToJson());
+            }
+            else 
+            {
+                finalResultBadReq = responseCode + " " + responseResultMethod + " " + responseResultPath + " " + responseResultDate + " " + responseResultBody + " " + responseResultResource;
+               
+                res.Status = finalResultBadReq.Trim();
+                Console.WriteLine(res.ToString());
+                client.SendRequest(res.ToJson());
+            }
+
+         
             
 
         }
