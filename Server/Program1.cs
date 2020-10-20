@@ -90,24 +90,32 @@ namespace Server
                 var stream = client.GetStream();
 
                 var msg = Read(client, stream);
-                
-                var res = new Response
+
+
+                if (!string.IsNullOrEmpty(msg))
                 {
-                    Body = null,
-                    Status = ""
+                    
+                    var res = new Response
+                    {
+                        Body = null,
+                        Status = ""
 
-                };
+                    };
 
-                 Request req =  msg.FromJson<Request>();
+                    Request req =  msg.FromJson<Request>();
                  
-                 Console.WriteLine(req.ToString());
+                    Console.WriteLine(req.ToString());
 
-                 CheckBadReqSystem(api, req, res, client);
+                    CheckBadReqSystem(api, req, res, client);
+                    Console.WriteLine($"Message from server {res}");
+                }
+
+           
                  
                 
           //     client.SendRequest(res.ToJson());
                 Console.WriteLine($"Message from client {msg}");
-                Console.WriteLine($"Message from server {res}");
+                
            
               //  var data = Encoding.UTF8.GetBytes(msg.ToUpper());
            
@@ -290,7 +298,7 @@ namespace Server
                              Console.WriteLine(res.Body.ToJson());
                              string finalPart = parts[parts.Length - 2].Remove(0, 5).ToJson();
                              Console.WriteLine(finalPart);
-                             finalPart.Replace("\"", "");
+                           //  finalPart.Replace("\"", "");
 
                              Category tempCat = new Category
                              {
