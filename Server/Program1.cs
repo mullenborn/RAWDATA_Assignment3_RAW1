@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
 using System.Collections;
+using System.Text.Json.Serialization;
 
 namespace Server
 {
@@ -35,12 +36,20 @@ namespace Server
         public string Body { get; set; }
     }
     
-    
+    public class Category
+    {
+        [JsonPropertyName("cid")]
+        public int Id { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+    }
+    /*
     public class Category
     {
         public int Cid { get; set; }
         public string Name { get; set; }
     }
+    */
     
 
 
@@ -64,9 +73,9 @@ namespace Server
           tempPaths.Add("/api/categories/3");
       
           ArrayList tempCategories = new ArrayList();
-          tempCategories.Add(new Category {Cid = 1, Name = "Beverages"});
-          tempCategories.Add(new Category {Cid = 2, Name = "Condiments"});
-          tempCategories.Add(new Category {Cid = 3, Name = "Confections"});
+          tempCategories.Add(new Category {Id = 1, Name = "Beverages"});
+          tempCategories.Add(new Category {Id = 2, Name = "Condiments"});
+          tempCategories.Add(new Category {Id = 3, Name = "Confections"});
           
             api.Categories = tempCategories;
             api.Paths = tempPaths;
@@ -98,10 +107,11 @@ namespace Server
                 
           //     client.SendRequest(res.ToJson());
                 Console.WriteLine($"Message from client {msg}");
+                Console.WriteLine($"Message from server {res}");
            
-                var data = Encoding.UTF8.GetBytes(msg.ToUpper());
+              //  var data = Encoding.UTF8.GetBytes(msg.ToUpper());
            
-                stream.Write(data);
+             //   stream.Write(data);
             }
         }
 
@@ -113,7 +123,6 @@ namespace Server
             string[] reqElements = {"method","path", "date", "body", "resource"};
             string[] methods = { "echo", "create", "read", "update", "delete"};
             string[] statusCodes = {"1 Ok", "2 Created", "3 Updated", "4 Bad Request", "5 Not Found", "6 Error"};
-       //     string[] paths = { "api\\categories\\1", "\\api\\categories\\2", "\\api\\categories\\3", "testing" };
             bool hasMethod = true;
             bool hasPath = true;
             bool hasDate = true;
@@ -246,6 +255,9 @@ namespace Server
                 }
             }
             
+            
+            
+            
             // READ
             if (hasLegalPath && hasLegalDate && req.Method.Equals(methods[2]))
             {
@@ -269,10 +281,28 @@ namespace Server
                             responseCode = statusCodes[0];
                             
                             // CHECK THIS? 
-                             res.Body = api.Categories[i - 1].ToJson();
-                           //  string[] parts = res.Body.Split('"');
-                           //  res.Body = parts[parts.Length - 2].ToJson();
                             
+                            
+                             res.Body = api.Categories[i - 1].ToJson();
+                             string[] parts = res.Body.Split("\\");
+                            // Console.WriteLine(parts[i]);
+                             res.Body = parts[parts.Length - 2].ToJson();
+                             Console.WriteLine(res.Body.ToJson());
+                             string finalPart = parts[parts.Length - 2].Remove(0, 5).ToJson();
+                             Console.WriteLine(finalPart);
+                             finalPart.Replace("\"", "");
+
+                             Category tempCat = new Category
+                             {
+                                 Id = i,
+                                 Name = finalPart
+
+                             };
+                             
+                             
+                             res.Body = tempCat.ToJson();
+                             // res.Body = api.Categories[i - 1].ToJson();
+
 
                         }
                         
@@ -295,7 +325,7 @@ namespace Server
                     responseCode = statusCodes[0];
                     Category newC = new Category
                     {
-                        Cid = api.Categories.Count + 1,
+                        Id = api.Categories.Count + 1,
                         Name = req.Body
                     };
 
@@ -326,10 +356,9 @@ namespace Server
             // UPDATE 
 
 
-            if (req.Method.Equals(methods[3]))
+            if (hasLegalPath && hasLegalBody && req.Method.Equals(methods[3]))
             {
-                if (hasLegalPath && hasLegalBody)
-                {
+              
                     if (req.Path.Equals(api.Paths[0]))
                     {
                         // STATUS CODE = 4 Bad Request
@@ -341,25 +370,33 @@ namespace Server
                         for (int i = 1; i < api.Paths.Count - 1; i++) {
                             
                             // UPDATE VALUE 
-                                
-                            Category newTemp = new Category
+
+                            if (req.Path.Equals(api.Paths[i]))
                             {
-                                Cid = i,
-                                Name = req.Body
-                            };
+                                Category newTemp = new Category
+                                {
+                                    Id = i,
+                                    Name = req.Body
+                                };
 // FIX THIS PART 
-                            api.Categories[i - 1] = newTemp;
-                            responseCode = statusCodes[2];
-                            res.Body = newTemp.ToJson();
-                     
-                            
+                                api.Categories[i - 1] = newTemp;
+                                responseCode = statusCodes[2];
+                                res.Body = newTemp.ToJson();
+                            }
+                            else
+                            {
+                                responseCode = statusCodes[0];
+                            }
+
+
+
                         }
 
 
                     }
 
 
-                }
+                
 
 
             }
